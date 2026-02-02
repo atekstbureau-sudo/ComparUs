@@ -4,22 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Titel en beschrijving voor SEO -->
+  <!-- SEO -->
   <title>ComparUS – Compare European Countries with US States (Population)</title>
   <meta name="description" content="ComparUS lets you compare populations of European countries with US states using an interactive map. Select countries and see how they fill US states.">
 
-  <!-- Open Graph tags voor sociale media delen -->
+  <!-- Open Graph (voor delen op social media) -->
   <meta property="og:title" content="ComparUS – Compare European Countries with US States">
   <meta property="og:description" content="Interactive map to compare populations of European countries with US states.">
   <meta property="og:type" content="website">
 
-  <!-- Favicon (optioneel) -->
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <!-- Stijl -->
   <style>
     body { font-family: Arial; margin: 20px; }
     #container { display: flex; gap: 20px; }
@@ -43,7 +40,6 @@
   <div id="map"></div>
 </div>
 
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
@@ -115,7 +111,9 @@ const usStates = [
 
 // --- Map setup ---
 const map = L.map('map').setView([37.8, -96], 4);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
 
 let statesLayer = null;
 let stateNameToLayer = {};
@@ -156,9 +154,14 @@ function getColor(frac){
 function updateMap(){
   if(!statesLayer) return;
 
-  const selectedCountries = Array.from(document.querySelectorAll('#checkboxes input:checked'))
-                                .map(cb => cb.value);
-  const totalPop = selectedCountries.reduce((sum,c)=> sum + (europe[c]||0), 0);
+  const selectedCountries = Array.from(
+    document.querySelectorAll('#checkboxes input:checked')
+  ).map(cb => cb.value);
+
+  const totalPop = selectedCountries.reduce(
+    (sum,c) => sum + (europe[c] || 0), 0
+  );
+
   let remaining = totalPop;
 
   Object.values(stateNameToLayer).forEach(layer => {
@@ -173,16 +176,21 @@ function updateMap(){
 
     const fraction = Math.min(remaining / stateData.population, 1);
     if(fraction > 0){
-      layer.setStyle({ fillColor: getColor(fraction), fillOpacity: 0.2 + 0.7*fraction });
+      layer.setStyle({
+        fillColor: getColor(fraction),
+        fillOpacity: 0.2 + 0.7 * fraction
+      });
     }
 
     remaining -= stateData.population * fraction;
   });
 
-  document.getElementById("sidebar").innerHTML = `<p>Selected countries: ${selectedCountries.join(', ') || 'None'}</p>
-                       <p>Total population: ${totalPop} million</p>
-                       <p>Remaining population after filling states: ${Math.max(remaining,0).toFixed(2)} million</p>`;
+  document.getElementById("sidebar").innerHTML =
+    `<p>Selected countries: ${selectedCountries.join(', ') || 'None'}</p>
+     <p>Total population: ${totalPop} million</p>
+     <p>Remaining population after filling states: ${Math.max(remaining,0).toFixed(2)} million</p>`;
 }
 </script>
 </body>
 </html>
+
