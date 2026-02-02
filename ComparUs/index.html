@@ -8,7 +8,7 @@
   <title>ComparUS – Compare European Countries with US States (Population)</title>
   <meta name="description" content="ComparUS lets you compare populations of European countries with US states using an interactive map. Select countries and see how they fill US states.">
 
-  <!-- Open Graph (voor delen op social media) -->
+  <!-- Open Graph -->
   <meta property="og:title" content="ComparUS – Compare European Countries with US States">
   <meta property="og:description" content="Interactive map to compare populations of European countries with US states.">
   <meta property="og:type" content="website">
@@ -48,10 +48,11 @@ const europe = {
   "Germany": 84,"France": 66,"Italy": 59,"Spain": 48,"Poland": 38,
   "Netherlands": 17,"Belgium": 11.7,"Czech Republic": 10.6,"Greece": 10.4,
   "Portugal": 10.3,"Sweden": 10.4,"Hungary": 9.6,"Austria": 9.1,
-  "Bulgaria": 6.5,"Denmark": 5.9,"Finland": 5.6,"Slovakia": 5.5,
-  "Croatia": 4,"Ireland": 5.3,"Lithuania": 2.8,"Slovenia": 2.1,
-  "Latvia": 1.9,"Estonia": 1.3,"Cyprus": 1.2,"Luxembourg": 0.65,"Malta": 0.53,
-  "Norway": 5.4,"Bosnia": 3.3,"Serbia": 6.7,"Albania": 2.9,"Montenegro": 0.62,
+  "Bulgaria": 6.5,"Romania": 19,"Moldova": 2.6,"Denmark": 5.9,
+  "Finland": 5.6,"Slovakia": 5.5,"Croatia": 4,"Ireland": 5.3,
+  "Lithuania": 2.8,"Slovenia": 2.1,"Latvia": 1.9,"Estonia": 1.3,
+  "Cyprus": 1.2,"Luxembourg": 0.65,"Malta": 0.53,"Norway": 5.4,
+  "Bosnia": 3.3,"Serbia": 6.7,"Albania": 2.9,"Montenegro": 0.62,
   "Macedonia": 2.1,"Iceland": 0.37,"Ukraine": 44,"United Kingdom": 68
 };
 
@@ -109,27 +110,25 @@ const usStates = [
   { name: "Hawaii", population: 1.4, lon: -157 }
 ];
 
-// --- Map setup ---
+// --- Map setup and functions ---
 const map = L.map('map').setView([37.8, -96], 4);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
 let statesLayer = null;
 let stateNameToLayer = {};
 
 fetch('https://cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json')
-.then(res => res.json())
-.then(data => {
-  statesLayer = L.geoJSON(data, {
-    style: { color: '#444', weight: 1, fillColor: '#eee', fillOpacity: 0.4 },
-    onEachFeature: (feature, layer) => {
-      layer.bindPopup(feature.properties.name);
-      const key = feature.properties.name.trim();
-      stateNameToLayer[key] = layer;
-    }
-  }).addTo(map);
-});
+  .then(res => res.json())
+  .then(data => {
+    statesLayer = L.geoJSON(data, {
+      style: { color: '#444', weight: 1, fillColor: '#eee', fillOpacity: 0.4 },
+      onEachFeature: (feature, layer) => {
+        layer.bindPopup(feature.properties.name);
+        const key = feature.properties.name.trim();
+        stateNameToLayer[key] = layer;
+      }
+    }).addTo(map);
+  });
 
 const checkboxesDiv = document.getElementById('checkboxes');
 Object.keys(europe).forEach(country => {
@@ -193,4 +192,3 @@ function updateMap(){
 </script>
 </body>
 </html>
-
