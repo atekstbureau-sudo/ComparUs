@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Titel en beschrijving voor SEO -->
+  <title>ComparUS – Compare European Countries with US States (Population)</title>
+  <meta name="description" content="ComparUS lets you compare populations of European countries with US states using an interactive map. Select countries and see how they fill US states.">
+
+  <!-- Open Graph tags voor sociale media delen -->
+  <meta property="og:title" content="ComparUS – Compare European Countries with US States">
+  <meta property="og:description" content="Interactive map to compare populations of European countries with US states.">
+  <meta property="og:type" content="website">
+
+  <!-- Favicon (optioneel) -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- Stijl -->
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    #container { display: flex; gap: 20px; }
+    #controls { width: 250px; }
+    #checkboxes { max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; }
+    label { display: block; margin-bottom: 2px; cursor: pointer; }
+    #map { flex-grow: 1; height: 600px; }
+    #sidebar { margin-top: 10px; padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+
+<h2>ComparUS – Compare European Countries with US States (Population)</h2>
+
+<div id="container">
+  <div id="controls">
+    <b>Select European countries</b>
+    <div id="checkboxes"></div>
+    <div id="sidebar"></div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// --- European populations (millions) ---
+const europe = {
+  "Germany": 84,"France": 66,"Italy": 59,"Spain": 48,"Poland": 38,
+  "Netherlands": 17,"Belgium": 11.7,"Czech Republic": 10.6,"Greece": 10.4,
+  "Portugal": 10.3,"Sweden": 10.4,"Hungary": 9.6,"Austria": 9.1,
+  "Bulgaria": 6.5,"Denmark": 5.9,"Finland": 5.6,"Slovakia": 5.5,
+  "Croatia": 4,"Ireland": 5.3,"Lithuania": 2.8,"Slovenia": 2.1,
+  "Latvia": 1.9,"Estonia": 1.3,"Cyprus": 1.2,"Luxembourg": 0.65,"Malta": 0.53,
+  "Norway": 5.4,"Bosnia": 3.3,"Serbia": 6.7,"Albania": 2.9,"Montenegro": 0.62,
+  "Macedonia": 2.1,"Iceland": 0.37,"Ukraine": 44,"United Kingdom": 68
+};
+
+// --- US states populations + longitude ---
+const usStates = [
+  { name: "Maine", population: 1.4, lon: -69 },
+  { name: "New Hampshire", population: 1.4, lon: -71 },
+  { name: "Vermont", population: 0.65, lon: -72 },
+  { name: "Massachusetts", population: 7.1, lon: -71 },
+  { name: "Rhode Island", population: 1.1, lon: -71 },
+  { name: "Connecticut", population: 3.7, lon: -72 },
+  { name: "New York", population: 19, lon: -75 },
+  { name: "New Jersey", population: 9.5, lon: -74 },
+  { name: "Pennsylvania", population: 13, lon: -77 },
+  { name: "Delaware", population: 1.0, lon: -75 },
+  { name: "Maryland", population: 6.2, lon: -77 },
+  { name: "Virginia", population: 8.8, lon: -78 },
+  { name: "West Virginia", population: 1.7, lon: -80 },
+  { name: "North Carolina", population: 11, lon: -79 },
+  { name: "South Carolina", population: 5.4, lon: -81 },
+  { name: "Georgia", population: 11, lon: -83 },
+  { name: "Florida", population: 21, lon: -81 },
+  { name: "Ohio", population: 11, lon: -82 },
+  { name: "Indiana", population: 6.9, lon: -86 },
+  { name: "Michigan", population: 10, lon: -85 },
+  { name: "Kentucky", population: 4.5, lon: -85 },
+  { name: "Tennessee", population: 7.2, lon: -86 },
+  { name: "Alabama", population: 5.1, lon: -86 },
+  { name: "Mississippi", population: 3.0, lon: -89 },
+  { name: "Louisiana", population: 4.6, lon: -92 },
+  { name: "Illinois", population: 12, lon: -89 },
+  { name: "Wisconsin", population: 5.9, lon: -89 },
+  { name: "Minnesota", population: 5.7, lon: -94 },
+  { name: "Iowa", population: 3.2, lon: -93 },
+  { name: "Missouri", population: 6.2, lon: -92 },
+  { name: "Arkansas", population: 3.0, lon: -92 },
+  { name: "North Dakota", population: 0.79, lon: -99 },
+  { name: "South Dakota", population: 0.92, lon: -99 },
+  { name: "Nebraska", population: 2.0, lon: -99 },
+  { name: "Kansas", population: 2.9, lon: -98 },
+  { name: "Oklahoma", population: 4.0, lon: -97 },
+  { name: "Texas", population: 29, lon: -100 },
+  { name: "Montana", population: 1.1, lon: -110 },
+  { name: "Wyoming", population: 0.58, lon: -107 },
+  { name: "Colorado", population: 5.9, lon: -105 },
+  { name: "New Mexico", population: 2.1, lon: -106 },
+  { name: "Arizona", population: 7.5, lon: -111 },
+  { name: "Utah", population: 3.5, lon: -111 },
+  { name: "Nevada", population: 3.2, lon: -116 },
+  { name: "Idaho", population: 2.0, lon: -114 },
+  { name: "Washington", population: 7.9, lon: -120 },
+  { name: "Oregon", population: 4.2, lon: -120 },
+  { name: "California", population: 39.5, lon: -119 },
+  { name: "Alaska", population: 0.74, lon: -150 },
+  { name: "Hawaii", population: 1.4, lon: -157 }
+];
+
+// --- Map setup ---
+const map = L.map('map').setView([37.8, -96], 4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+
+let statesLayer = null;
+let stateNameToLayer = {};
+
+fetch('https://cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json')
+.then(res => res.json())
+.then(data => {
+  statesLayer = L.geoJSON(data, {
+    style: { color: '#444', weight: 1, fillColor: '#eee', fillOpacity: 0.4 },
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup(feature.properties.name);
+      const key = feature.properties.name.trim();
+      stateNameToLayer[key] = layer;
+    }
+  }).addTo(map);
+});
+
+const checkboxesDiv = document.getElementById('checkboxes');
+Object.keys(europe).forEach(country => {
+  const label = document.createElement('label');
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.value = country;
+  input.addEventListener('change', updateMap);
+  label.appendChild(input);
+  label.appendChild(document.createTextNode(' ' + country));
+  checkboxesDiv.appendChild(label);
+});
+
+function getColor(frac){
+  if(frac >= 0.75) return "#08519c";
+  if(frac >= 0.50) return "#4292c6";
+  if(frac >= 0.25) return "#9ecae1";
+  if(frac > 0) return "#deebf7";
+  return "#eee";
+}
+
+function updateMap(){
+  if(!statesLayer) return;
+
+  const selectedCountries = Array.from(document.querySelectorAll('#checkboxes input:checked'))
+                                .map(cb => cb.value);
+  const totalPop = selectedCountries.reduce((sum,c)=> sum + (europe[c]||0), 0);
+  let remaining = totalPop;
+
+  Object.values(stateNameToLayer).forEach(layer => {
+    layer.setStyle({ fillColor: '#eee', fillOpacity: 0.4 });
+  });
+
+  const sortedStates = usStates.slice().sort((a,b) => b.lon - a.lon);
+
+  sortedStates.forEach(stateData => {
+    const layer = stateNameToLayer[stateData.name.trim()];
+    if(!layer) return;
+
+    const fraction = Math.min(remaining / stateData.population, 1);
+    if(fraction > 0){
+      layer.setStyle({ fillColor: getColor(fraction), fillOpacity: 0.2 + 0.7*fraction });
+    }
+
+    remaining -= stateData.population * fraction;
+  });
+
+  document.getElementById("sidebar").innerHTML = `<p>Selected countries: ${selectedCountries.join(', ') || 'None'}</p>
+                       <p>Total population: ${totalPop} million</p>
+                       <p>Remaining population after filling states: ${Math.max(remaining,0).toFixed(2)} million</p>`;
+}
+</script>
+</body>
+</html>
